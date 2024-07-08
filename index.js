@@ -4,8 +4,8 @@ const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-// MongoDB connection
-mongoose.connect('mongodb+srv://deveshshrivas060:Gq7mmeGubT8twoD8@cluster0.w8nmlpu.mongodb.net/OwnGit_Dev_ChatRoom')
+// MongoDB connection using environment variable
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
 
@@ -13,14 +13,14 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173", // Ensure this matches the client-side URL
+        origin: process.env.CORS_ORIGIN, // Use environment variable for CORS origin
         methods: ["GET", "POST"],
         credentials: true
     }
 });
 
 app.use(cors({
-    origin: "http://localhost:3000", // Match this with the client-side URL
+    origin: process.env.CORS_ORIGIN, // Use environment variable for CORS origin
     credentials: true
 }));
 app.use(express.json());
@@ -54,6 +54,7 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3001, () => {
-    console.log('listening on *:3001');
+const port = process.env.PORT || 3001; // Dynamic port configuration for Heroku
+server.listen(port, () => {
+    console.log(`listening on *:${port}`);
 });
