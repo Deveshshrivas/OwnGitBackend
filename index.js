@@ -4,7 +4,6 @@ const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-
 require('dotenv').config(); // Load environment variables from .env file
 
 // Improved MongoDB connection using environment variable with error handling
@@ -22,12 +21,16 @@ const io = new Server(server, {
     }
 });
 
-app.use(cors({
-    origin: process.env.CORS_ORIGIN, // Use environment variable for CORS origin
-    credentials: true
-}));
+// Middleware to parse JSON request bodies
 app.use(express.json());
 
+// Example POST route
+app.post('/api/data', (req, res) => {
+    console.log(req.body); // Log the request body to the console
+    res.status(200).send('Data received'); // Send a response back to the client
+});
+
+// Your existing code continues here...
 const messageSchema = new mongoose.Schema({
     user: String,
     time: String,
