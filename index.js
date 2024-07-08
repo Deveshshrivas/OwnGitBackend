@@ -55,6 +55,3 @@ io.on('connection', (socket) => {
 });
 
 const port = process.env.PORT || 3001; // Dynamic port configuration for Heroku
-server.listen(port, () => {
-    console.log(`listening on *:${port}`);
-});
