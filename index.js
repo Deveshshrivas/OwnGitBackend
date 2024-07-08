@@ -15,7 +15,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: process.env.CORS_ORIGIN,
-        methods: ["GET", "POST"],
+        methods: ["POST"], // Limit to POST method only
         credentials: true
     }
 });
@@ -46,23 +46,12 @@ app.post('/message', (req, res) => {
         .catch(err => res.status(500).send('Error saving message'));
 });
 
-// GET route for retrieving the last 50 messages
-app.get('/messages', (req, res) => {
-    Message.find().sort({ time: -1 }).limit(50)
-        .then(messages => res.status(200).json(messages.reverse()))
-        .catch(err => res.status(500).send('Error retrieving messages'));
-});
-
 io.on('connection', (socket) => {
     console.log('a user connected');
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
-});
-
-app.get('/', (req, res) => {
-    res.send('Welcome to the Chat App!');
 });
 
 const port = process.env.PORT || 3001;
