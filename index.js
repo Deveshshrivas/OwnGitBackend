@@ -8,14 +8,17 @@ require('dotenv').config(); // Load environment variables from .env file
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log("MongoDB connected"))
-    .catch(err => console.log("MongoDB connection error:", err));
+    .catch(err => {
+        console.log("MongoDB connection error:", err);
+        process.exit(1); // Exit the process if cannot connect to MongoDB
+    });
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: process.env.CORS_ORIGIN,
-        methods: ["POST"], // Limit to POST method only
+        // Removed methods restriction to allow for Socket.IO's default behavior
         credentials: true
     }
 });
@@ -33,8 +36,9 @@ const Message = mongoose.model('Message', messageSchema);
 
 // POST route for saving new messages
 app.post('/message', (req, res) => {
-    if (!req.body.text || !req.body.user) {
-        return res.status(400).send('Message text and user are required');
+    // Enhanced validation to check if text and user are strings
+    if (typeof req.body.text !== 'string' || !req.body.text.trim() || typeof req.body.user !== 'string' || !req.body.user.trim()) {
+        return res.status(400).send('Message text and user are required and must be non-empty strings');
     }
 
     const message = new Message(req.body);
