@@ -4,10 +4,13 @@ const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+
+require('dotenv').config(); // Load environment variables from .env file
+
 // Improved MongoDB connection using environment variable with error handling
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log("MongoDB connected"))
+    .catch(err => console.log("MongoDB connection error:", err));
 
 const app = express();
 const server = http.createServer(app);
