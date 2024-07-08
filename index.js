@@ -1,40 +1,25 @@
 const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const cors = require('cors');
+const http = require('http');
+const socketIo = require('socket.io');
 
-require('dotenv').config(); // Load environment variables from .env file
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/chatApp', { useNewUrlParser: true, useUnifiedTopology: true });
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log("MongoDB connected"))
-    .catch(err => {
-        console.log("MongoDB connection error:", err);
-        process.exit(1); // Exit the process if cannot connect to MongoDB
-    });
+// Define the Message model
+const messageSchema = new mongoose.Schema({
+  text: String,
+  user: String,
+}, { timestamps: true });
+const Message = mongoose.model('Message', messageSchema);
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: process.env.CORS_ORIGIN,
-        // Removed methods restriction to allow for Socket.IO's default behavior
-        credentials: true
-    }
-});
+const io = socketIo(server);
 
-app.use(express.json());
-app.use(cors()); // Enable CORS with default options
+app.use(bodyParser.json());
 
-const messageSchema = new mongoose.Schema({
-    user: String,
-    time: { type: Date, default: Date.now },
-    text: String,
-});
-
-const Message = mongoose.model('Message', messageSchema);
-
-// POST route for saving new messages
 app.post('/message', (req, res) => {
     // Enhanced validation to check if text and user are strings
     if (typeof req.body.text !== 'string' || !req.body.text.trim() || typeof req.body.user !== 'string' || !req.body.user.trim()) {
@@ -51,15 +36,13 @@ app.post('/message', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
-
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
-    });
+  console.log('A user connected');
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
 });
 
-const port = process.env.PORT || 3001;
-
-server.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
