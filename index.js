@@ -25,11 +25,10 @@ const io = new Server(server, {
 app.use(express.json());
 
 // Example POST route
-app.post('/api/data', (req, res) => {
+app.post('/', (req, res) => {
     console.log(req.body); // Log the request body to the console
-    res.status(200).send('Data received'); // Send a response back to the client
+    res.status(200).send('Root POST request received'); // Send a response back to the client
 });
-
 // Your existing code continues here...
 const messageSchema = new mongoose.Schema({
     user: String,
