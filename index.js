@@ -4,10 +4,10 @@ const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-// MongoDB connection using environment variable
-mongoose.connect(process.env.MONGODB_URI)
+// Improved MongoDB connection using environment variable with error handling
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
-    .catch(err => console.log(err));
+    .catch(err => console.error('MongoDB connection error:', err));
 
 const app = express();
 const server = http.createServer(app);
@@ -52,6 +52,11 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
+});
+
+// Route handler for the root path
+app.get('/', (req, res) => {
+    res.send('Welcome to the Chat App!');
 });
 
 const port = process.env.PORT || 3001; // Dynamic port configuration for Heroku
