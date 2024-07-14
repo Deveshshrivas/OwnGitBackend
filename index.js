@@ -21,7 +21,7 @@ const io = socketIo(server);
 app.use(cors({
   origin: 'https://frontentofowngit-e9b53ab21da8.herokuapp.com/'
 }));
-
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // The rest of your code remains unchanged...
