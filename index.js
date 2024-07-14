@@ -4,19 +4,12 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const http = require('http');
 const socketIo = require('socket.io');
-const cors = require('cors');
+const cors = require('cors'); // Correctly placed cors import
 
 // MongoDB connection using MONGODB_URI from .env
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
-
-// Message model
-const messageSchema = new mongoose.Schema({
-  text: String,
-  user: String,
-}, { timestamps: true });
-const Message = mongoose.model('Message', messageSchema);
 
 // Express and Socket.IO setup
 const app = express();
@@ -24,17 +17,14 @@ const server = http.createServer(app);
 const io = socketIo(server);
 
 // Enable CORS for the frontend origin
-const cors = require('cors');
-
-// If you want to allow requests from any origin
-app.use(cors());
-
-// If you want to restrict requests to a specific origin
+// Configure CORS correctly according to your needs
 app.use(cors({
   origin: 'https://frontentofowngit-e9b53ab21da8.herokuapp.com/'
 }));
 
 app.use(bodyParser.json());
+
+// The rest of your code remains unchanged...
 
 // POST endpoint for messages
 app.post('/message', async (req, res) => {
