@@ -18,7 +18,7 @@ const io = socketIo(server);
 
 // Define CORS options if needed, or directly use the cors() middleware with specific options
 const corsOptions = {
-  origin: 'https://frontentofowngit-e9b53ab21da8.herokuapp.com/', // Your frontend application's origin
+  origin: " * ", // Your frontend application's origin
   credentials: true,
   optionsSuccessStatus: 200 // For legacy browser support
 };
