@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const http = require('http');
 const socketIo = require('socket.io');
-const cors = require('cors'); // Correctly placed cors import
+const cors = require('cors');
 
 // MongoDB connection using MONGODB_URI from .env
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -16,15 +16,21 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Enable CORS for the frontend origin
-// Configure CORS correctly according to your needs
-app.use(cors({
-  origin: 'https://frontentofowngit-e9b53ab21da8.herokuapp.com/'
-}));
+// Define CORS options if needed, or directly use the cors() middleware with specific options
+const corsOptions = {
+  origin: 'https://frontentofowngit-e9b53ab21da8.herokuapp.com/',
+  optionsSuccessStatus: 200 // For legacy browser support
+};
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
-// The rest of your code remains unchanged...
+// Define the Message model according to your MongoDB schema
+const messageSchema = new mongoose.Schema({
+  text: String,
+  user: String,
+  timestamp: { type: Date, default: Date.now }
+});
+const Message = mongoose.model('Message', messageSchema);
 
 // POST endpoint for messages
 app.post('/message', async (req, res) => {
@@ -38,6 +44,7 @@ app.post('/message', async (req, res) => {
     io.emit('chat message', savedMessage); // Emit the saved message to all clients
     res.status(201).send('Message saved');
   } catch (err) {
+    console.error('Error saving message:', err);
     res.status(500).send('Error saving message');
   }
 });
