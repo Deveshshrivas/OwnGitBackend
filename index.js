@@ -1,40 +1,50 @@
+require('dotenv').config(); // Load environment variables
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const http = require('http');
 const socketIo = require('socket.io');
+const cors = require('cors');
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/chatApp', { useNewUrlParser: true, useUnifiedTopology: true });
+// MongoDB connection using MONGODB_URI from .env
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-// Define the Message model
+// Message model
 const messageSchema = new mongoose.Schema({
   text: String,
   user: String,
 }, { timestamps: true });
 const Message = mongoose.model('Message', messageSchema);
 
+// Express and Socket.IO setup
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+// Enable CORS for the frontend origin
+app.use(cors({ origin: process.env.CORS_ORIGIN }));
+
 app.use(bodyParser.json());
 
-app.post('/message', (req, res) => {
-    // Enhanced validation to check if text and user are strings
+// POST endpoint for messages
+app.post('/message', async (req, res) => {
+  try {
     if (typeof req.body.text !== 'string' || !req.body.text.trim() || typeof req.body.user !== 'string' || !req.body.user.trim()) {
-        return res.status(400).send('Message text and user are required and must be non-empty strings');
+      return res.status(400).send('Message text and user are required and must be non-empty strings');
     }
 
     const message = new Message(req.body);
-    message.save()
-        .then((savedMessage) => {
-            io.emit('chat message', savedMessage); // Emit the saved message to all clients
-            res.status(201).send('Message saved');
-        })
-        .catch(err => res.status(500).send('Error saving message'));
+    const savedMessage = await message.save();
+    io.emit('chat message', savedMessage); // Emit the saved message to all clients
+    res.status(201).send('Message saved');
+  } catch (err) {
+    res.status(500).send('Error saving message');
+  }
 });
 
+// Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('A user connected');
   socket.on('disconnect', () => {
@@ -42,6 +52,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// Server listening
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
