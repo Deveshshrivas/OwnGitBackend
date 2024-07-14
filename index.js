@@ -31,7 +31,32 @@ const Message = mongoose.model('Message', messageSchema);
 
 // POST endpoint for saving a message
 app.post('/message', async (req, res) => {
-  // Existing code for saving a message
+  app.post('/messages', async (req, res) => {
+    try {
+      // Step 1: Parse the request body
+      const { user, text } = req.body;
+  
+      // Step 2: Validate the incoming data
+      if (!user || !text) {
+        return res.status(400).json({ message: 'Missing user or text in request body' });
+      }
+  
+      // Assuming a maxLength for text
+      if (text.length > 500) {
+        return res.status(400).json({ message: 'Text exceeds maximum length of 500 characters' });
+      }
+  
+      // Step 3: Save the message (pseudo-code, replace with your actual database logic)
+      // const savedMessage = await database.saveMessage({ user, text });
+      console.log(`Message received from ${user}: ${text}`); // Placeholder for actual save operation
+  
+      // Step 4: Send a response
+      res.status(201).json({ message: 'Message received successfully' });
+    } catch (error) {
+      console.error('Error handling incoming message:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
 });
 
 // GET endpoint for fetching messages
