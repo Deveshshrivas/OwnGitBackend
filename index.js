@@ -6,6 +6,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 
+// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
@@ -14,14 +15,16 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+// CORS options
 const corsOptions = {
-  origin: "*", // Corrected origin
+  origin: "*", // Allow all origins
   credentials: true,
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
+// Message schema
 const messageSchema = new mongoose.Schema({
   text: String,
   user: String,
@@ -30,33 +33,30 @@ const messageSchema = new mongoose.Schema({
 const Message = mongoose.model('Message', messageSchema);
 
 // POST endpoint for saving a message
-app.post('/message', async (req, res) => {
-  app.post('/messages', async (req, res) => {
-    try {
-      // Step 1: Parse the request body
-      const { user, text } = req.body;
-  
-      // Step 2: Validate the incoming data
-      if (!user || !text) {
-        return res.status(400).json({ message: 'Missing user or text in request body' });
-      }
-  
-      // Assuming a maxLength for text
-      if (text.length > 500) {
-        return res.status(400).json({ message: 'Text exceeds maximum length of 500 characters' });
-      }
-  
-      // Step 3: Save the message (pseudo-code, replace with your actual database logic)
-      // const savedMessage = await database.saveMessage({ user, text });
-      console.log(`Message received from ${user}: ${text}`); // Placeholder for actual save operation
-  
-      // Step 4: Send a response
-      res.status(201).json({ message: 'Message received successfully' });
-    } catch (error) {
-      console.error('Error handling incoming message:', error);
-      res.status(500).json({ message: 'Internal server error' });
+app.post('/messages', async (req, res) => {
+  try {
+    const { user, text } = req.body; // Parse the request body
+
+    // Validate the incoming data
+    if (!user || !text) {
+      return res.status(400).json({ message: 'Missing user or text in request body' });
     }
-  });
+
+    // Check text length
+    if (text.length > 500) {
+      return res.status(400).json({ message: 'Text exceeds maximum length of 500 characters' });
+    }
+
+    // Save the message
+    const newMessage = new Message({ user, text });
+    await newMessage.save();
+
+    // Send a response
+    res.status(201).json({ message: 'Message received successfully' });
+  } catch (error) {
+    console.error('Error handling incoming message:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 // GET endpoint for fetching messages
@@ -70,10 +70,15 @@ app.get('/messages', async (req, res) => {
   }
 });
 
+// Socket.IO connection handling
 io.on('connection', (socket) => {
-  // Existing Socket.IO connection handling
+  console.log('A user connected');
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
 });
 
+// Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
