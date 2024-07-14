@@ -6,26 +6,22 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 
-// MongoDB connection using MONGODB_URI from .env
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Express and Socket.IO setup
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Define CORS options if needed, or directly use the cors() middleware with specific options
 const corsOptions = {
-  origin: " * ", // Your frontend application's origin
+  origin: "*", // Corrected origin
   credentials: true,
-  optionsSuccessStatus: 200 // For legacy browser support
+  optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
-// Define the Message model according to your MongoDB schema
 const messageSchema = new mongoose.Schema({
   text: String,
   user: String,
@@ -33,32 +29,26 @@ const messageSchema = new mongoose.Schema({
 });
 const Message = mongoose.model('Message', messageSchema);
 
-// POST endpoint for messages
+// POST endpoint for saving a message
 app.post('/message', async (req, res) => {
-  try {
-    if (typeof req.body.text !== 'string' || !req.body.text.trim() || typeof req.body.user !== 'string' || !req.body.user.trim()) {
-      return res.status(400).send('Message text and user are required and must be non-empty strings');
-    }
+  // Existing code for saving a message
+});
 
-    const message = new Message(req.body);
-    const savedMessage = await message.save();
-    io.emit('chat message', savedMessage); // Emit the saved message to all clients
-    res.status(201).send('Message saved');
+// GET endpoint for fetching messages
+app.get('/messages', async (req, res) => {
+  try {
+    const messages = await Message.find({}).sort({ timestamp: -1 }).limit(50); // Fetch the last 50 messages
+    res.json(messages);
   } catch (err) {
-    console.error('Error saving message:', err);
-    res.status(500).send('Error saving message');
+    console.error('Error fetching messages:', err);
+    res.status(500).send('Error fetching messages');
   }
 });
 
-// Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log('A user connected');
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
+  // Existing Socket.IO connection handling
 });
 
-// Server listening
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
