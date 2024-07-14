@@ -24,7 +24,15 @@ const server = http.createServer(app);
 const io = socketIo(server);
 
 // Enable CORS for the frontend origin
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+const cors = require('cors');
+
+// If you want to allow requests from any origin
+app.use(cors());
+
+// If you want to restrict requests to a specific origin
+app.use(cors({
+  origin: 'https://frontentofowngit-e9b53ab21da8.herokuapp.com/'
+}));
 
 app.use(bodyParser.json());
 
